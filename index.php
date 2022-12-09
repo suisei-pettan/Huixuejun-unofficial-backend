@@ -15,7 +15,7 @@ function get_link($path1)
     $curl = curl_init();
 
     curl_setopt_array($curl, array(
-        CURLOPT_URL => 'http://192.168.2.210:5244/api/fs/get?path=' . $path1,
+        CURLOPT_URL => 'http://192.168.2.210:5244/api/fs/get?path=' . urlencode($path1),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -51,7 +51,7 @@ function get_file($path)
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => 'path='. $path,
+        CURLOPT_POSTFIELDS => 'path=' . urlencode($path),
         CURLOPT_HTTPHEADER => array(
             'Content-Type: application/x-www-form-urlencoded'
         ),
@@ -60,9 +60,9 @@ function get_file($path)
     $get_folder = curl_exec($curl);
     curl_close($curl);
     $get_folder = json_decode($get_folder, true)['data']['content'];
-    for ($i = 0; $i < count($get_folder); $i++) {
+    for ($i = 0; $i < count((array)$get_folder); $i++) {
 
-        if ($get_folder[$i]['is_dir']==false){
+        if ($get_folder[$i]['is_dir'] == false) {
             $file_name[$i] = $get_folder[$i]['name'];
             $name[] = $file_name[$i];
             $res[] = get_link($path . '/' . $file_name[$i]);
@@ -75,8 +75,8 @@ function get_file($path)
 
     }
 
-    for ($i = 0; $i < count($name); $i++) {
-        if ($i != count($name) - 1) {
+    for ($i = 0; $i < count((array)$name); $i++) {
+        if ($i != count((array)$name) - 1) {
             $lesson = $lesson . '{"id": "关注冰糖io，人生永远得优","task_id": "关注冰糖io，人生永远得优","resource_id": "3240910","uri": "' . $res[$i] . '","title": "' . $name[$i] . '","type": "9","size": "2.27 MB","sources": 1,"delete_flag": "1","is_read": "1","course_id": "","section_id": "","vtype": 0,"isread": 1},';
         } else {
             $lesson = $lesson . '{"id": "关注冰糖io，人生永远得优","task_id": "关注冰糖io，人生永远得优","resource_id": "3240910","uri": "' . $res[$i] . '","title": "' . $name[$i] . '","type": "9","size": "2.27 MB","sources": 1,"delete_flag": "1","is_read": "1","course_id": "","section_id": "","vtype": 0,"isread": 1}],"taskinfo": {"web_taskinfo": "资源：《2.2 二项分布及其应用 》","web_starttime": "2022-04-08 10:14:00","web_endtime": "2022-04-09 10:14:00","web_chaper": "2.2 二项分布及其应用 ","web_taskdesc": "","web_limited_time": "0"},"allread": 1,"costtime": "79"},"msg": ""}';
@@ -106,7 +106,7 @@ function get_path($path)
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => 'path=' . $path,
+        CURLOPT_POSTFIELDS => 'path=' . urlencode($path),
         CURLOPT_HTTPHEADER => array(
             'Content-Type: application/x-www-form-urlencoded'
         ),
@@ -124,12 +124,12 @@ function get_folder_path($path)
 //    $path = "/";
     $get_folder = get_path($path);
     global $task_id;
-    for ($i = 0; $i < count((array)$get_folder);$i++) {
+    for ($i = 0; $i < count((array)$get_folder); $i++) {
         if ($get_folder[$i]['is_dir']) {
 //            $path=$path."/";
 //            echo ($path.$get_folder[$i]['name']."   ");
 //            $task_id[$i] = $path . $get_folder[$i]['name'];
-            array_push($task_id,$path . $get_folder[$i]['name']);
+            array_push($task_id, $path . $get_folder[$i]['name']);
             get_folder_path($path . $get_folder[$i]['name'] . "/");
         }
 
@@ -140,6 +140,7 @@ function get_folder_path($path)
     }
 //     $task_id;
 }
+
 //get_folder_path("/");
 
 $Task_head = '
@@ -246,11 +247,11 @@ $Task_bottom = '",
 //echo $get_folder[1]['name'];;
 //遍历文件夹
 $get_folder = get_folder_path("/");
-for ($i = 0; $i < count($task_id); $i++) {
+for ($i = 0; $i < count((array)$task_id); $i++) {
 //    echo $i;
 //    $task_id[$i] = $get_folder[$i];
 
-    if ($i != count($task_id) - 1) {
+    if ($i != count((array)$task_id) - 1) {
         $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_middle2;
     } else {
         $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_bottom;
