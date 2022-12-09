@@ -6,9 +6,8 @@ $query_str = $_SERVER['QUERY_STRING'];
 
 parse_str($query_str, $query_arr);
 $mode = $query_arr['service'];
-$file_type=$query_arr['taskid'];
+$file_type = $query_arr['taskid'];
 $task_id = array();
-
 
 function get_link($path1)
 {
@@ -16,7 +15,7 @@ function get_link($path1)
     $curl = curl_init();
 
     curl_setopt_array($curl, array(
-        CURLOPT_URL => 'http://192.168.2.210:5244/api/fs/get?path=/'.$path1,
+        CURLOPT_URL => 'http://192.168.2.210:5244/api/fs/get?path=' . $path1,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -37,6 +36,7 @@ function get_link($path1)
 
 function get_file($path)
 {
+    global $name;
     $file_name = array();
     $res = array();
     $curl = curl_init();
@@ -51,7 +51,7 @@ function get_file($path)
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => 'path=/' . $path,
+        CURLOPT_POSTFIELDS => 'path='. $path,
         CURLOPT_HTTPHEADER => array(
             'Content-Type: application/x-www-form-urlencoded'
         ),
@@ -61,13 +61,20 @@ function get_file($path)
     curl_close($curl);
     $get_folder = json_decode($get_folder, true)['data']['content'];
     for ($i = 0; $i < count($get_folder); $i++) {
-        $file_name[$i] = $get_folder[$i]['name'];
-        $name[$i] = $file_name[$i];
-        $res[$i] = get_link($path . '/' . $file_name[$i]);
+
+        if ($get_folder[$i]['is_dir']==false){
+            $file_name[$i] = $get_folder[$i]['name'];
+            $name[] = $file_name[$i];
+            $res[] = get_link($path . '/' . $file_name[$i]);
+        }
+//        $name[$i] = $file_name[$i];
+//        $res[$i] = get_link($path . '/' . $file_name[$i]);
 
 //        echo 'http://192.168.2.210:5244/api/fs/get?path=/' . $path . '/' . $file_name[$i];
 //        echo $file_name[$i];
+
     }
+
     for ($i = 0; $i < count($name); $i++) {
         if ($i != count($name) - 1) {
             $lesson = $lesson . '{"id": "关注冰糖io，人生永远得优","task_id": "关注冰糖io，人生永远得优","resource_id": "3240910","uri": "' . $res[$i] . '","title": "' . $name[$i] . '","type": "9","size": "2.27 MB","sources": 1,"delete_flag": "1","is_read": "1","course_id": "","section_id": "","vtype": 0,"isread": 1},';
@@ -86,26 +93,55 @@ function get_file($path)
 //    "http://192.168.1.77:99/chfs/shared/%E5%85%B3%E6%B3%A8%E5%86%B0%E7%B3%96io%EF%BC%8C%E4%BA%BA%E7%94%9F%E6%B0%B8%E8%BF%9C%E5%BE%97%E4%BC%98.png",
 //    "http://192.168.1.77:99/chfs/shared/%E7%AC%ACN%E5%8A%A01%E4%B8%AA.txt"
 //);
-$curl = curl_init();
+function get_path($path)
+{
+    $curl = curl_init();
 
-curl_setopt_array($curl, array(
-    CURLOPT_URL => 'http://192.168.2.210:5244/api/fs/list',
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_ENCODING => '',
-    CURLOPT_MAXREDIRS => 10,
-    CURLOPT_TIMEOUT => 0,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => 'POST',
-    CURLOPT_POSTFIELDS => 'path=%2F',
-    CURLOPT_HTTPHEADER => array(
-        'Content-Type: application/x-www-form-urlencoded'
-    ),
-));
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => 'http://192.168.2.210:5244/api/fs/list',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => 'path=' . $path,
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/x-www-form-urlencoded'
+        ),
+    ));
 
-$get_folder = curl_exec($curl);
-$get_folder = json_decode($get_folder, true)['data']['content'];
-curl_close($curl);
+    $get_folder = curl_exec($curl);
+    $get_folder = json_decode($get_folder, true)['data']['content'];
+    curl_close($curl);
+    return $get_folder;
+}
+
+//循环遍历文件夹路径
+function get_folder_path($path)
+{
+//    $path = "/";
+    $get_folder = get_path($path);
+    global $task_id;
+    for ($i = 0; $i < count((array)$get_folder);$i++) {
+        if ($get_folder[$i]['is_dir']) {
+//            $path=$path."/";
+//            echo ($path.$get_folder[$i]['name']."   ");
+//            $task_id[$i] = $path . $get_folder[$i]['name'];
+            array_push($task_id,$path . $get_folder[$i]['name']);
+            get_folder_path($path . $get_folder[$i]['name'] . "/");
+        }
+
+//            $task_id[$i]=$get_folder[$i]['name'];
+//            echo $task_id[$i];
+
+//        echo $task_id[$i]."     ";
+    }
+//     $task_id;
+}
+//get_folder_path("/");
+
 $Task_head = '
 {
 	"ret": 200,
@@ -208,11 +244,13 @@ $Task_bottom = '",
 	"msg": ""
 }';
 //echo $get_folder[1]['name'];;
-
-for ($i = 0; $i < count($get_folder); $i++) {
+//遍历文件夹
+$get_folder = get_folder_path("/");
+for ($i = 0; $i < count($task_id); $i++) {
 //    echo $i;
-    $task_id[$i] = $get_folder[$i]['name'];
-    if ($i != count($get_folder) - 1) {
+//    $task_id[$i] = $get_folder[$i];
+
+    if ($i != count($task_id) - 1) {
         $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_middle2;
     } else {
         $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_bottom;
@@ -296,14 +334,14 @@ $Subject = '
 		"subjectcd": "410",
 		"subjectname": "DD学",
 		"stagecd": "4",
-		"icon": "https://img.moegirl.org.cn/common/4/45/Overidea%E6%A0%87%E5%BF%97.png",
-		"icon2": "https://img.moegirl.org.cn/common/4/45/Overidea%E6%A0%87%E5%BF%97.png",
+		"icon": "http://192.168.2.210/icon.png",
+		"icon2": "http://192.168.2.210/icon.png",
 		"count": "2"
 	}],
 	"msg": ""
 }
 ';
-
+//get_file('/阿里1');
 if ($mode == "App.Task.GetAfterClass") {
     exit($Task_head);
 } elseif ($mode == "App.Knowledge.GetSubject") {
