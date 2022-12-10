@@ -11,6 +11,7 @@ parse_str($query_str, $query_arr);
 $mode = $query_arr['service'];
 $file_type = $query_arr['taskid'];
 $task_id = array();
+$task_id_len = 0;
 
 function get_link($path1)
 {
@@ -60,17 +61,17 @@ function get_file($path)
     $get_folder = curl_exec($curl);
     curl_close($curl);
     $get_folder = json_decode($get_folder, true)['data']['content'];
-    for ($i = 0; $i < count((array)$get_folder); $i++) {
-
+    $get_folder_len = count((array)$get_folder);
+    for ($i = 0; $i < $get_folder_len; $i++) {
         if ($get_folder[$i]['is_dir'] == false) {
             $file_name[$i] = $get_folder[$i]['name'];
             $name[] = $file_name[$i];
             $res[] = get_link($path . '/' . $file_name[$i]);
         }
     }
-
-    for ($i = 0; $i < count((array)$name); $i++) {
-        if ($i != count((array)$name) - 1) {
+    $name_len = count((array)$name);
+    for ($i = 0; $i < $name_len; $i++) {
+        if ($i != $name_len - 1) {
             $lesson = $lesson . '{"id": "关注冰糖io，人生永远得优","task_id": "关注冰糖io，人生永远得优","resource_id": "3240910","uri": "' . $res[$i] . '","title": "' . $name[$i] . '","type": "9","size": "2.27 MB","sources": 1,"delete_flag": "1","is_read": "1","course_id": "","section_id": "","vtype": 0,"isread": 1},';
         } else {
             $lesson = $lesson . '{"id": "关注冰糖io，人生永远得优","task_id": "关注冰糖io，人生永远得优","resource_id": "3240910","uri": "' . $res[$i] . '","title": "' . $name[$i] . '","type": "9","size": "2.27 MB","sources": 1,"delete_flag": "1","is_read": "1","course_id": "","section_id": "","vtype": 0,"isread": 1}],"taskinfo": {"web_taskinfo": "资源：《2.2 二项分布及其应用 》","web_starttime": "2022-04-08 10:14:00","web_endtime": "2022-04-09 10:14:00","web_chaper": "2.2 二项分布及其应用 ","web_taskdesc": "","web_limited_time": "0"},"allread": 1,"costtime": "79"},"msg": ""}';
@@ -104,16 +105,24 @@ function get_path($path)
     return $get_folder;
 }
 
+//$get_folder_first = true;
 function get_folder_path($path)
 {
-    $get_folder = get_path($path);
-    global $task_id;
-    for ($i = 0; $i < count((array)$get_folder); $i++) {
+    global $task_id, $task_id_len;
+        $get_folder = get_path($path);
+        $get_folder_len = count((array)$get_folder);
+
+    for ($i = 0; $i < $get_folder_len; $i++) {
         if ($get_folder[$i]['is_dir']) {
             array_push($task_id, $path . $get_folder[$i]['name']);
+//            $get_folder_first = true;
             get_folder_path($path . $get_folder[$i]['name'] . "/");
+//            $get_folder_first = false;
+        }else{
+            break;
         }
     }
+    $task_id_len = count((array)$task_id);
 }
 
 $Task_head = '
@@ -218,15 +227,18 @@ $Task_bottom = '",
 	"msg": ""
 }';
 
-//遍历文件夹
-$get_folder = get_folder_path("/");
-for ($i = 0; $i < count((array)$task_id); $i++) {
-    if ($i != count((array)$task_id) - 1) {
-        $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_middle2;
-    } else {
-        $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_bottom;
+function make_task_head(){
+    global $task_id_len,$Task_head,$task_id,$Task_middle1,$Task_middle2,$Task_bottom;
+    for ($i = 0; $i < $task_id_len; $i++) {
+        if ($i != $task_id_len - 1) {
+            $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_middle2;
+        } else {
+            $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_bottom;
+        }
     }
 }
+
+
 
 $Subject = '
 {
@@ -243,6 +255,9 @@ $Subject = '
 }
 ';
 if ($mode == "App.Task.GetAfterClass") {
+    //遍历文件夹
+    get_folder_path("/");
+    make_task_head();
     exit($Task_head);
 } elseif ($mode == "App.Knowledge.GetSubject") {
     exit($Subject);
