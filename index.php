@@ -1,5 +1,8 @@
 <?php
 //获取url中的参数
+
+//192.168.2.210改为你的alist主机地址
+
 $query_str = $_SERVER['QUERY_STRING'];
 
 // parse_str($query_str); /* 这种方式可以直接使用变量$id, $category, $title */
@@ -160,7 +163,7 @@ $Task_middle2 = '",
 		"taskmodule": "1",
 		"chaper_id": "33314",
 		"taskdesc": "",
-		"realname": "冰糖主人",
+		"realname": "by:冰糖主人的电子宠物",
 		"texttime": 0,
 		"delayed_time2": 0,
 		"studentclass_id": "213",
@@ -191,7 +194,7 @@ $Task_bottom = '",
 		"taskmodule": "1",
 		"chaper_id": "33314",
 		"taskdesc": "",
-		"realname": "冰糖主人",
+		"realname": "by:冰糖主人的电子宠物",
 		"texttime": 0,
 		"delayed_time2": 0,
 		"studentclass_id": "213",
