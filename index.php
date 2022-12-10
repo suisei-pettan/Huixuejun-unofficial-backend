@@ -10,6 +10,7 @@ $query_str = $_SERVER['QUERY_STRING'];
 parse_str($query_str, $query_arr);
 $mode = $query_arr['service'];
 $file_type = $query_arr['taskid'];
+$page = $query_arr['page'];
 $task_id = array();
 $task_id_len = 0;
 
@@ -105,23 +106,33 @@ function get_path($path)
     return $get_folder;
 }
 
-//$get_folder_first = true;
+$get_folder_first = true;
 function get_folder_path($path)
 {
-    global $task_id, $task_id_len;
-        $get_folder = get_path($path);
-        $get_folder_len = count((array)$get_folder);
+    global $task_id, $task_id_len, $get_folder_first, $page;
+    $get_folder = get_path($path);
+    $get_folder_len = count((array)$get_folder);
 
-    for ($i = 0; $i < $get_folder_len; $i++) {
-        if ($get_folder[$i]['is_dir']) {
-            array_push($task_id, $path . $get_folder[$i]['name']);
+    if ($get_folder_first) {
+        $get_folder_first = false;
+        array_push($task_id, $path . $get_folder[$page-1]['name']);
 //            $get_folder_first = true;
-            get_folder_path($path . $get_folder[$i]['name'] . "/");
+        get_folder_path($path . $get_folder[$page-1]['name'] . "/");
+////            $get_folder_first = false;
+//            echo $get_folder_first;
+    } else {
+        for ($i = 0; $i < $get_folder_len; $i++) {
+            if ($get_folder[$i]['is_dir']) {
+                array_push($task_id, $path . $get_folder[$i]['name']);
+//            $get_folder_first = true;
+                get_folder_path($path . $get_folder[$i]['name'] . "/");
 //            $get_folder_first = false;
-        }else{
-            break;
+            } else {
+                break;
+            }
         }
     }
+
     $task_id_len = count((array)$task_id);
 }
 
@@ -227,8 +238,9 @@ $Task_bottom = '",
 	"msg": ""
 }';
 
-function make_task_head(){
-    global $task_id_len,$Task_head,$task_id,$Task_middle1,$Task_middle2,$Task_bottom;
+function make_task_head()
+{
+    global $task_id_len, $Task_head, $task_id, $Task_middle1, $Task_middle2, $Task_bottom;
     for ($i = 0; $i < $task_id_len; $i++) {
         if ($i != $task_id_len - 1) {
             $Task_head = $Task_head . $task_id[$i] . $Task_middle1 . $task_id[$i] . $Task_middle2;
@@ -237,7 +249,6 @@ function make_task_head(){
         }
     }
 }
-
 
 
 $Subject = '
