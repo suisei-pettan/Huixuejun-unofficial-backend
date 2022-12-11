@@ -6,11 +6,10 @@
 $query_str = $_SERVER['QUERY_STRING'];
 
 // parse_str($query_str); /* 这种方式可以直接使用变量$id, $category, $title */
-
+ob_start();
 parse_str($query_str, $query_arr);
 $mode = $query_arr['service'];
-$file_type = $query_arr['taskid'];
-$page = $query_arr['page'];
+//$file_type = $query_arr['taskid'];
 $task_id = array();
 $task_id_len = 0;
 
@@ -266,6 +265,7 @@ $Subject = '
 }
 ';
 if ($mode == "App.Task.GetAfterClass") {
+    $page = $query_arr['page'];
     //遍历文件夹
     get_folder_path("/");
     make_task_head();
@@ -273,6 +273,7 @@ if ($mode == "App.Task.GetAfterClass") {
 } elseif ($mode == "App.Knowledge.GetSubject") {
     exit($Subject);
 } elseif ($mode == "App.Knowledge.GetSourseInfo") {
+    $file_type = $query_arr['taskid'];
     get_file($file_type);
 } elseif ($mode == "App.Report.GetZongheReport") {
     exit('{"ret":200,"data":"http://192.168.1.77/index.php","msg":""}');
