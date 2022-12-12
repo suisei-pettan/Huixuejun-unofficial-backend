@@ -32,6 +32,7 @@ function get_link($path1)
     $response1 = curl_exec($curl);
     curl_close($curl);
     $response1 = json_decode($response1, true)['data']['raw_url'];
+    $response1 = substr($response1,0,strpos($response1,'sign')-1);
     return $response1;
 }
 
