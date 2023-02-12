@@ -32,7 +32,7 @@ function get_link($path1)
     $response1 = curl_exec($curl);
     curl_close($curl);
     $response1 = json_decode($response1, true)['data']['raw_url'];
-    $response1 = substr($response1,0,strpos($response1,'sign')-1);
+    $response1 = substr($response1, 0, strpos($response1, 'sign') - 1);
     return $response1;
 }
 
@@ -109,27 +109,18 @@ function get_path($path)
 $get_folder_first = true;
 function get_folder_path($path)
 {
-    global $task_id, $task_id_len, $get_folder_first, $page;
+    global $task_id, $task_id_len, $get_folder_first;
     $get_folder = get_path($path);
     $get_folder_len = count((array)$get_folder);
 
-    if ($get_folder_first) {
-        $get_folder_first = false;
-        array_push($task_id, $path . $get_folder[$page-1]['name']);
+    for ($i = 0; $i < $get_folder_len; $i++) {
+        if ($get_folder[$i]['is_dir']) {
+            array_push($task_id, $path . $get_folder[$i]['name']);
 //            $get_folder_first = true;
-        get_folder_path($path . $get_folder[$page-1]['name'] . "/");
-////            $get_folder_first = false;
-//            echo $get_folder_first;
-    } else {
-        for ($i = 0; $i < $get_folder_len; $i++) {
-            if ($get_folder[$i]['is_dir']) {
-                array_push($task_id, $path . $get_folder[$i]['name']);
-//            $get_folder_first = true;
-                get_folder_path($path . $get_folder[$i]['name'] . "/");
+            get_folder_path($path . $get_folder[$i]['name'] . "/");
 //            $get_folder_first = false;
-            } else {
-                break;
-            }
+        } else {
+            break;
         }
     }
 
@@ -265,17 +256,10 @@ $Subject = '
 	"msg": ""
 }
 ';
-if ($mode == "App.Task.GetAfterClass") {
-    $page = $query_arr['page'];
     //遍历文件夹
     get_folder_path("/");
     make_task_head();
-    exit($Task_head);
-} elseif ($mode == "App.Knowledge.GetSubject") {
-    exit($Subject);
-} elseif ($mode == "App.Knowledge.GetSourseInfo") {
-    $file_type = $query_arr['taskid'];
-    get_file($file_type);
-} elseif ($mode == "App.Report.GetZongheReport") {
-    exit('{"ret":200,"data":"http://192.168.1.77/index.php","msg":""}');
-}
+    $datafile = fopen("data.txt", "w") or die("Unable to open file!");
+    fwrite($datafile, $Task_head);
+    fclose($datafile);
+    exit("扫库完成");
